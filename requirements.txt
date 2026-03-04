@@ -1,4 +1,6 @@
-crewai
+﻿crewai
 langchain-google-genai
 python-dotenv
 pydantic
+fastapi
+uvicorn
