@@ -16,8 +16,8 @@ def run_triage(message: str) -> dict:
         agents=[triage, ner, writer],
         tasks=[
             tasks.classification_task(triage, message),
-            tasks.extraction_task(ner),
-            tasks.response_task(writer),
+            tasks.extraction_task(ner, message),
+            tasks.response_task(writer, message),
         ],
         process=Process.sequential,
         verbose=True,

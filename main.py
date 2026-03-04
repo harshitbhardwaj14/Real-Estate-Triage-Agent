@@ -16,8 +16,8 @@ def run_triage_system(inquiry_text):
         agents=[triage, ner, writer],
         tasks=[
             tasks.classification_task(triage, inquiry_text),
-            tasks.extraction_task(ner),
-            tasks.response_task(writer)
+            tasks.extraction_task(ner, inquiry_text),
+            tasks.response_task(writer, inquiry_text)
         ],
         process=Process.sequential,
         verbose=True
