@@ -12,6 +12,7 @@ export default function App() {
   const [chat, setChat] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isDarkMode, setIsDarkMode] = useState(true);
 
   const onAnalyze = async () => {
     const inquiry = message.trim();
@@ -48,12 +49,28 @@ export default function App() {
     }
   };
 
+  const toggleTheme = () => {
+    setIsDarkMode(!isDarkMode);
+    document.documentElement.setAttribute('data-theme', !isDarkMode ? 'light' : 'dark');
+  };
+
   return (
-    <div className="page">
+    <div className={`page ${isDarkMode ? 'dark-mode' : 'light-mode'}`}>
       <div className="chat-shell">
         <div className="chat-header">
-          <h1>Real Estate AI Triage Agent</h1>
-          <p>Chat-style inquiry analysis</p>
+          <div className="header-content">
+            <div>
+              <h1>Real Estate AI Triage Agent</h1>
+              <p>Chat-style inquiry analysis</p>
+            </div>
+            <button 
+              className="theme-toggle" 
+              onClick={toggleTheme}
+              aria-label="Toggle theme"
+            >
+              {isDarkMode ? '☀️' : '🌙'}
+            </button>
+          </div>
         </div>
 
         <div className="chat-window">
