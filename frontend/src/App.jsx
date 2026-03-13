@@ -3,6 +3,7 @@ import { useState } from "react";
 const API_URL = "http://localhost:8000/triage";
 const EXAMPLE_QUERIES = [
   "Hi, I'm interested in property REF-8821. Can I schedule a viewing this Friday morning? I'm in town for one day.",
+  "Hi, I'm interested in property REF-8821. I'd love to schedule a viewing at your earliest convenience—no rush at all. Just let me know what times work best for you in the coming days or weeks. Thanks!",
   "Hello, is REF-4410 still available for rent? I can visit next Tuesday after 5 PM.",
   "I submitted a maintenance complaint for REF-1209 last week and haven't heard back. Please call me urgently.",
 ];
@@ -159,7 +160,7 @@ export default function App() {
             {loading ? "Analyzing..." : "Analyze Inquiry"}
           </button>
 
-          {error && <p className="error input-error">{error}</p>}
+          {/* {error && <p className="error input-error">{error}</p>} */}
         </div>
       </div>
     </div>
