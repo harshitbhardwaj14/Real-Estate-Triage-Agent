@@ -31,11 +31,12 @@ class RealEstateTasks:
     def response_task(self, agent, text):
         return Task(
             description=(
-                "Create the final triage result from the inquiry and prior task outputs.\n"
+                "Create the final triage result.\n"
                 f"Inquiry: '{text}'\n"
-                "Use urgency and intent labels exactly from the allowed sets.\n"
-                "Use Complaint intent when the user reports unresolved problems or dissatisfaction.\n"
-                "Generate a professional draft_response that matches the detected intent."
+                "You will be given previous task outputs in the context.\n"
+                "Use classification output (urgency, intent) and extraction output (property_id, appointment_date).\n"
+                "Do not re-classify or re-extract. Focus on drafting a professional response.\n"
+                "Generate a professional draft_response based strictly on this data."
             ),
             expected_output="A complete JSON-formatted TriageResult.",
             output_json=TriageResult,

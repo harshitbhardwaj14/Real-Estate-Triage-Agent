@@ -12,13 +12,15 @@ def run_triage(message: str) -> dict:
     ner = agents.ner_specialist()
     writer = agents.support_writer()
 
+    classification = tasks.classification_task(triage, message)
+    extraction = tasks.extraction_task(ner, message)
+    response = tasks.response_task(writer, message)
+
+    response.context = [classification, extraction]
+
     crew = Crew(
         agents=[triage, ner, writer],
-        tasks=[
-            tasks.classification_task(triage, message),
-            tasks.extraction_task(ner, message),
-            tasks.response_task(writer, message),
-        ],
+        tasks=[classification, extraction, response],
         process=Process.sequential,
         verbose=True,
     )
