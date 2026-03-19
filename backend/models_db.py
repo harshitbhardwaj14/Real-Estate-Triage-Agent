@@ -21,4 +21,5 @@ class TriageRecord(Base):
     property_id = Column(String, nullable=True)
     appointment_date = Column(String, nullable=True)
     draft_response = Column(Text, nullable=False)
+    status = Column(String, default="Unsolved") # NEW: Status tracking field
     created_at = Column(DateTime(timezone=True), server_default=func.now())
