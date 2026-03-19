@@ -4,6 +4,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from sqlalchemy import case
+from typing import Literal
 
 from backend.triage_service import execute_triage
 from backend.database import engine, Base, get_db
@@ -17,7 +18,7 @@ from datetime import timedelta
 # Create DB tables
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Real Estate AI Triage API", version="1.1.0")
+app = FastAPI(title="Real Estate AI Triage API", version="1.2.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -35,6 +36,10 @@ class UserCreate(BaseModel):
 
 class TriageRequest(BaseModel):
     message: str = Field(..., min_length=1, description="Customer inquiry text")
+
+# NEW: Schema for updating record status
+class StatusUpdate(BaseModel):
+    status: Literal["Unsolved", "Action Taken", "Solved"]
 
 # --- Endpoints ---
 
@@ -67,10 +72,8 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 @app.post("/triage")
 def triage(payload: TriageRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict:
     try:
-        # Run CrewAI Pipeline
         result = execute_triage(payload.message)
         
-        # Save to Database
         new_record = TriageRecord(
             user_id=current_user.id,
             inquiry=payload.message,
@@ -78,7 +81,8 @@ def triage(payload: TriageRequest, current_user: User = Depends(get_current_user
             intent=result.get("intent", "General Inquiry"),
             property_id=result.get("property_id"),
             appointment_date=result.get("appointment_date"),
-            draft_response=result.get("draft_response", "")
+            draft_response=result.get("draft_response", ""),
+            status="Unsolved" # Initialize as Unsolved
         )
         db.add(new_record)
         db.commit()
@@ -92,7 +96,6 @@ def get_admin_records(current_user: User = Depends(get_current_user), db: Sessio
     if not current_user.is_admin:
         raise HTTPException(status_code=403, detail="Not authorized")
     
-    # Custom sort: High=1, Medium=2, Low=3
     urgency_order = case(
         (TriageRecord.urgency == 'High', 1),
         (TriageRecord.urgency == 'Medium', 2),
@@ -100,13 +103,11 @@ def get_admin_records(current_user: User = Depends(get_current_user), db: Sessio
         else_=4
     )
     
-    # Join TriageRecord and User to get the phone number
     results = db.query(TriageRecord, User.phone_number)\
         .join(User, TriageRecord.user_id == User.id)\
         .order_by(urgency_order, TriageRecord.created_at.desc())\
         .limit(15).all()
         
-    # Format the combined data into a flat dictionary
     formatted_records = []
     for record, phone in results:
         formatted_records.append({
@@ -115,7 +116,22 @@ def get_admin_records(current_user: User = Depends(get_current_user), db: Sessio
             "urgency": record.urgency,
             "intent": record.intent,
             "inquiry": record.inquiry,
-            "property_id": record.property_id
+            "property_id": record.property_id,
+            "status": record.status # Include status in response
         })
         
     return formatted_records
+
+# NEW: Endpoint to update status
+@app.patch("/admin/records/{record_id}/status")
+def update_record_status(record_id: int, payload: StatusUpdate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    record = db.query(TriageRecord).filter(TriageRecord.id == record_id).first()
+    if not record:
+        raise HTTPException(status_code=404, detail="Record not found")
+    
+    record.status = payload.status
+    db.commit()
+    return {"message": "Status updated successfully", "status": record.status}
