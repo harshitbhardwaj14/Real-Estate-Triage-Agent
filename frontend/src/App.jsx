@@ -127,6 +127,25 @@ export default function App() {
     if (view === "admin" && token) fetchAdminRecords();
   }, [view, token]);
 
+  // NEW: Handle Status Change
+  const handleStatusChange = async (recordId, newStatus) => {
+    // Optimistic UI update
+    setRecords(records.map(r => r.id === recordId ? { ...r, status: newStatus } : r));
+    
+    try {
+      await fetch(`${API_BASE}/admin/records/${recordId}/status`, {
+        method: "PATCH",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}` 
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+    } catch (e) {
+      console.error("Failed to update status", e);
+    }
+  };
+
   // --- RENDERS ---
 
   const inputStyle = {
@@ -273,11 +292,12 @@ export default function App() {
             <table style={{width: '100%', borderCollapse: 'collapse', textAlign: 'left', tableLayout: 'fixed'}}>
               <thead>
                 <tr style={{background: isDarkMode ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0.05)'}}>
-                  <th style={{padding: '16px 12px', width: '15%', borderBottom: isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)'}}>Phone</th>
+                  <th style={{padding: '16px 12px', width: '13%', borderBottom: isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)'}}>Phone</th>
                   <th style={{padding: '16px 12px', width: '10%', borderBottom: isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)'}}>Urgency</th>
-                  <th style={{padding: '16px 12px', width: '15%', borderBottom: isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)'}}>Intent</th>
-                  <th style={{padding: '16px 12px', width: '45%', borderBottom: isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)'}}>Full Inquiry</th>
-                  <th style={{padding: '16px 12px', width: '15%', borderBottom: isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)'}}>Property ID</th>
+                  <th style={{padding: '16px 12px', width: '12%', borderBottom: isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)'}}>Intent</th>
+                  <th style={{padding: '16px 12px', width: '40%', borderBottom: isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)'}}>Full Inquiry</th>
+                  <th style={{padding: '16px 12px', width: '10%', borderBottom: isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)'}}>ID</th>
+                  <th style={{padding: '16px 12px', width: '15%', borderBottom: isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)'}}>Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -296,12 +316,33 @@ export default function App() {
                     <td style={{padding: '16px 12px', whiteSpace: 'pre-wrap', lineHeight: '1.5', wordBreak: 'break-word'}}>
                       {r.inquiry}
                     </td>
-                    <td style={{padding: '16px 12px'}}>{r.property_id || '-'}</td>
+                    <td style={{padding: '16px 12px', wordBreak: 'break-all'}}>{r.property_id || '-'}</td>
+                    <td style={{padding: '16px 12px'}}>
+                      <select 
+                        value={r.status || "Unsolved"} 
+                        onChange={(e) => handleStatusChange(r.id, e.target.value)}
+                        style={{
+                          padding: '8px',
+                          borderRadius: '8px',
+                          background: isDarkMode ? 'rgba(255,255,255,0.1)' : '#fff',
+                          color: isDarkMode ? '#fff' : '#000',
+                          border: isDarkMode ? '1px solid rgba(255,255,255,0.2)' : '1px solid rgba(0,0,0,0.2)',
+                          outline: 'none',
+                          cursor: 'pointer',
+                          width: '100%',
+                          fontSize: '0.9rem'
+                        }}
+                      >
+                        <option value="Unsolved">Unsolved</option>
+                        <option value="Action Taken">Action Taken</option>
+                        <option value="Solved">Solved</option>
+                      </select>
+                    </td>
                   </tr>
                 ))}
                 {records.length === 0 && (
                   <tr>
-                    <td colSpan="5" style={{padding: '2rem', textAlign: 'center', opacity: 0.7}}>No records found.</td>
+                    <td colSpan="6" style={{padding: '2rem', textAlign: 'center', opacity: 0.7}}>No records found.</td>
                   </tr>
                 )}
               </tbody>
