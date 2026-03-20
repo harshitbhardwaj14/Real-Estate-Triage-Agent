@@ -140,3 +140,27 @@ def update_record_status(record_id: int, payload: StatusUpdate, current_user: Us
     record.status = payload.status
     db.commit()
     return {"message": "Status updated successfully", "status": record.status}
+
+# Add this endpoint in backend/main.py
+
+@app.get("/user/records")
+def get_user_records(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    # Fetch records belonging ONLY to the logged-in user
+    records = db.query(TriageRecord)\
+        .filter(TriageRecord.user_id == current_user.id)\
+        .order_by(TriageRecord.created_at.desc())\
+        .all()
+        
+    formatted_records = []
+    for r in records:
+        formatted_records.append({
+            "id": r.id,
+            "urgency": r.urgency,
+            "intent": r.intent,
+            "inquiry": r.inquiry,
+            "property_id": r.property_id,
+            "status": r.status,
+            "created_at": r.created_at.strftime("%Y-%m-%d %H:%M") if r.created_at else "N/A"
+        })
+        
+    return formatted_records
