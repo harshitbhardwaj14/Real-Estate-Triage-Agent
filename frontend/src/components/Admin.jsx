@@ -16,7 +16,7 @@ const Spinner = () => (
 
 export default function Admin({ token, isDarkMode }) {
   const [records, setRecords] = useState([]);
-  const [loading, setLoading] = useState(true); // Default to true so it spins on initial mount
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchAdminRecords = async () => {
@@ -32,7 +32,7 @@ export default function Admin({ token, isDarkMode }) {
       } catch (error) {
         console.error("Failed to fetch records:", error);
       } finally {
-        setLoading(false); // Stop spinning once data arrives (or fails)
+        setLoading(false);
       }
     };
     fetchAdminRecords();
@@ -40,7 +40,6 @@ export default function Admin({ token, isDarkMode }) {
 
   // Handle Status Change
   const handleStatusChange = async (recordId, newStatus) => {
-    // Optimistic UI update
     setRecords(records.map(r => r.id === recordId ? { ...r, status: newStatus } : r));
     
     try {
@@ -62,36 +61,35 @@ export default function Admin({ token, isDarkMode }) {
       <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', tableLayout: 'fixed' }}>
         <thead>
           <tr style={{ background: isDarkMode ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0.05)' }}>
+            <th style={{ padding: '16px 12px', width: '12%', borderBottom: isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)' }}>Name</th>
             <th style={{ padding: '16px 12px', width: '13%', borderBottom: isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)' }}>Phone</th>
-            <th style={{ padding: '16px 12px', width: '10%', borderBottom: isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)' }}>Urgency</th>
-            <th style={{ padding: '16px 12px', width: '12%', borderBottom: isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)' }}>Intent</th>
-            <th style={{ padding: '16px 12px', width: '40%', borderBottom: isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)' }}>Full Inquiry</th>
-            <th style={{ padding: '16px 12px', width: '10%', borderBottom: isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)' }}>ID</th>
-            <th style={{ padding: '16px 12px', width: '15%', borderBottom: isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)' }}>Status</th>
+            <th style={{ padding: '16px 12px', width: '9%', borderBottom: isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)' }}>Urgency</th>
+            <th style={{ padding: '16px 12px', width: '11%', borderBottom: isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)' }}>Intent</th>
+            <th style={{ padding: '16px 12px', width: '33%', borderBottom: isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)' }}>Full Inquiry</th>
+            <th style={{ padding: '16px 12px', width: '8%', borderBottom: isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)' }}>ID</th>
+            <th style={{ padding: '16px 12px', width: '14%', borderBottom: isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)' }}>Status</th>
           </tr>
         </thead>
         <tbody>
-          {/* 1. Show Loading State */}
           {loading ? (
             <tr>
-              <td colSpan="6" style={{ padding: '4rem 2rem', textAlign: 'center', opacity: 0.8, color: isDarkMode ? '#fff' : '#000' }}>
+              <td colSpan="7" style={{ padding: '4rem 2rem', textAlign: 'center', opacity: 0.8, color: isDarkMode ? '#fff' : '#000' }}>
                 <Spinner /> Loading inquiries...
               </td>
             </tr>
           ) : 
           
-          /* 2. Show Empty State (if no records) */
           records.length === 0 ? (
             <tr>
-              <td colSpan="6" style={{ padding: '3rem 2rem', textAlign: 'center', opacity: 0.6, color: isDarkMode ? '#fff' : '#000' }}>
+              <td colSpan="7" style={{ padding: '3rem 2rem', textAlign: 'center', opacity: 0.6, color: isDarkMode ? '#fff' : '#000' }}>
                 No records found.
               </td>
             </tr>
           ) : 
           
-          /* 3. Show Data */
           records.map(r => (
             <tr key={r.id} style={{ borderBottom: isDarkMode ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.05)', verticalAlign: 'top' }}>
+              <td style={{ padding: '16px 12px', fontWeight: '500', wordBreak: 'break-word' }}>{r.name || 'N/A'}</td>
               <td style={{ padding: '16px 12px', fontWeight: '500', wordBreak: 'break-all' }}>{r.phone_number}</td>
               <td style={{
                 padding: '16px 12px', 
