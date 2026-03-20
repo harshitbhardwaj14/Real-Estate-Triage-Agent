@@ -15,10 +15,7 @@ from backend.auth import (
 )
 from datetime import timedelta
 
-# Create DB tables
-Base.metadata.create_all(bind=engine)
-
-app = FastAPI(title="Real Estate AI Triage API", version="1.2.0")
+app = FastAPI(title="Real Estate AI Triage API", version="1.3.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -30,6 +27,7 @@ app.add_middleware(
 
 # --- Pydantic Schemas ---
 class UserCreate(BaseModel):
+    name: str # NEW: Required for registration
     phone_number: str
     password: str
     is_admin: bool = False
@@ -37,7 +35,6 @@ class UserCreate(BaseModel):
 class TriageRequest(BaseModel):
     message: str = Field(..., min_length=1, description="Customer inquiry text")
 
-# NEW: Schema for updating record status
 class StatusUpdate(BaseModel):
     status: Literal["Unsolved", "Action Taken", "Solved"]
 
@@ -45,12 +42,18 @@ class StatusUpdate(BaseModel):
 
 @app.post("/register")
 def register(user: UserCreate, db: Session = Depends(get_db)):
+    # NEW: Strict 10-digit validation with admin bypass
+    if "admin" not in user.phone_number.lower():
+        if not user.phone_number.isdigit() or len(user.phone_number) != 10:
+            raise HTTPException(status_code=400, detail="Phone number must be exactly 10 digits")
+
     db_user = db.query(User).filter(User.phone_number == user.phone_number).first()
     if db_user:
         raise HTTPException(status_code=400, detail="Phone number already registered")
     
     hashed_pwd = get_password_hash(user.password)
-    new_user = User(phone_number=user.phone_number, hashed_password=hashed_pwd, is_admin=user.is_admin)
+    # NEW: Save the user's name
+    new_user = User(name=user.name, phone_number=user.phone_number, hashed_password=hashed_pwd, is_admin=user.is_admin)
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
@@ -82,7 +85,7 @@ def triage(payload: TriageRequest, current_user: User = Depends(get_current_user
             property_id=result.get("property_id"),
             appointment_date=result.get("appointment_date"),
             draft_response=result.get("draft_response", ""),
-            status="Unsolved" # Initialize as Unsolved
+            status="Unsolved"
         )
         db.add(new_record)
         db.commit()
@@ -103,26 +106,28 @@ def get_admin_records(current_user: User = Depends(get_current_user), db: Sessio
         else_=4
     )
     
-    results = db.query(TriageRecord, User.phone_number)\
+    # 1. Add User.name to the query selection
+    results = db.query(TriageRecord, User.phone_number, User.name)\
         .join(User, TriageRecord.user_id == User.id)\
         .order_by(urgency_order, TriageRecord.created_at.desc())\
         .limit(15).all()
         
     formatted_records = []
-    for record, phone in results:
+    # 2. Unpack the name from the query results
+    for record, phone, name in results:
         formatted_records.append({
             "id": record.id,
+            "name": name, 
             "phone_number": phone,
             "urgency": record.urgency,
             "intent": record.intent,
             "inquiry": record.inquiry,
             "property_id": record.property_id,
-            "status": record.status # Include status in response
+            "status": record.status 
         })
         
     return formatted_records
 
-# NEW: Endpoint to update status
 @app.patch("/admin/records/{record_id}/status")
 def update_record_status(record_id: int, payload: StatusUpdate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     if not current_user.is_admin:
