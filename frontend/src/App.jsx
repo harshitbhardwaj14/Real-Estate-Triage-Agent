@@ -27,7 +27,7 @@ export default function App() {
   // Adjust container styles dynamically based on whether it's the login view
   const isLogin = view === "login";
   const pageStyle = isLogin ? { display: 'flex', justifyContent: 'center', alignItems: 'center' } : {};
-  const shellStyle = isLogin ? { height: 'auto', width: '100%', maxWidth: '450px' } : {};
+  const shellStyle = isLogin ? { height: 'auto', width: '100%', maxWidth: '850px' } : {};
 
   return (
     <div className={`page ${isDarkMode ? 'dark-mode' : 'light-mode'}`} style={pageStyle}>
