@@ -1,7 +1,7 @@
 ﻿from crewai import Crew, Process
 
-from agents import RealEstateAgents
-from tasks import RealEstateTasks
+from backend.agents import RealEstateAgents
+from backend.tasks import RealEstateTasks
 
 
 def run_triage(message: str) -> dict:
