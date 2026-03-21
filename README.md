@@ -1,113 +1,188 @@
-# Real Estate AI Triage Agent 🏡🤖
 
-An intelligent, full-stack multi-agent AI system designed to automate the initial handling of real estate customer inquiries. Built with **CrewAI**, **FastAPI**, and **React**, this application classifies inquiry urgency, extracts key property details, and drafts professional responses in real-time. 
+<div align="center">
 
-The system features secure user authentication and a role-based admin dashboard, with all data persistently stored in a **PostgreSQL (NeonDB)** database.
+  <h1>🏡 Real Estate AI Triage Agent</h1>
+  
+  <p>
+    <strong>Intelligent, Multi-Agent Automation for Real Estate Customer Support</strong>
+  </p>
+
+  <p>
+    <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
+    <img src="https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi" alt="FastAPI" />
+    <img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" />
+    <img src="https://img.shields.io/badge/AI-CrewAI-FF453A?style=for-the-badge" alt="CrewAI" />
+  </p>
+</div>
+
+---
+
+## 📖 Overview
+
+The **Real Estate AI Triage Agent** is a full-stack application that uses artificial intelligence to automatically handle customer inquiries for real estate businesses. When a customer sends a message—whether it's an urgent maintenance request or a simple question about a property—the AI system instantly analyzes it, determines how important it is, extracts key information (like property IDs), and crafts a thoughtful, personalized response.
+
+This ensures that every customer feels heard and no request gets overlooked, while saving valuable time for human staff who can focus on more complex tasks.
+
+---
+
+## 📂 Project Structure
+
+The application is organized into two main parts: a Python backend that handles the AI and database logic, and a React frontend that provides the user interface.
+
+```text
+real-estate-ai-triage/
+│
+├── backend/                       # 🐍 Python Backend & AI Logic
+│   ├── alembic/                   # Database migration files
+│   ├── auth.py                    # Login system with password encryption
+│   ├── crew_pipeline.py           # AI agent definitions and prompts
+│   ├── database.py                # Database connection setup
+│   ├── main.py                    # API endpoints and routing
+│   ├── models_db.py               # Database table structures
+│   └── triage_service.py          # Service that runs the AI pipeline
+│
+├── frontend/                      # ⚛️ React Frontend UI
+│   ├── public/
+│   ├── src/
+│   │   ├── components/            # Reusable UI pieces
+│   │   │   ├── Admin.jsx          # Admin dashboard
+│   │   │   ├── Chat.jsx           # User chat interface
+│   │   │   ├── Header.jsx         # Navigation bar
+│   │   │   └── Login.jsx          # Login and registration screen
+│   │   │
+│   │   ├── App.jsx                # Main app controller
+│   │   ├── main.jsx               # App entry point
+│   │   ├── styles.css             # Global styling
+│   │   └── bgimage.jpg            # Background image
+│   │
+│   ├── package.json               # Frontend dependencies
+│   └── vite.config.js             # Build tool configuration
+│
+├── alembic.ini                    # Database migration settings
+├── requirements.txt               # Python dependencies
+├── .env                           # Environment variables (keep secret!)
+└── README.md                      # This documentation
+```
+
+---
 
 ## ✨ Key Features
 
-* 🤖 **Multi-Agent AI Pipeline:** Powered by CrewAI and Google Gemini 2.5 Flash. It uses a sequential three-agent team (Triage Specialist, Data Extraction Expert, and Client Relations Manager) to process natural language inquiries.
-* 🔐 **Secure Authentication:** JWT-based user login and registration with raw `bcrypt` password hashing.
-* 🗄️ **Persistent Storage:** All triage records and user credentials are saved securely to a PostgreSQL database using SQLAlchemy.
-* 📊 **Admin Dashboard:** A dedicated, role-based view for administrators to monitor the top 15 most critical inquiries, automatically sorted by urgency (High > Medium > Low).
-* 🌗 **Modern UI:** A responsive, chat-style React interface with seamless Dark/Light mode toggling and wrapped text formatting for full inquiry visibility.
+- **Multi-Agent AI System:** Three specialized AI agents work together as a team—one to understand the inquiry, one to extract important details, and one to craft the perfect response.
+- **Two User Experiences:**
+  - **Regular Users:** Submit inquiries, get instant AI responses, and view their personal request history
+  - **Admins:** See all incoming inquiries sorted by urgency and update ticket statuses
+- **Secure Login:** Complete registration and login with phone number verification, encrypted passwords, and secure session tokens
+- **Persistent Data Storage:** All information is safely stored in a PostgreSQL database (using NeonDB), with version control for database changes
+- **Modern Interface:** Clean, chat-style design with automatic dark/light mode that adapts to your preference
 
-## 🛠️ Tech Stack
-
-* **Frontend:** React 18, Vite, Native CSS
-* **Backend:** FastAPI, Python, Uvicorn
-* **AI Framework:** CrewAI, Langchain, Google Gemini API
-* **Database:** PostgreSQL (NeonDB), SQLAlchemy, psycopg2-binary
-* **Security:** python-jose (JWT), bcrypt
-
-## 📐 Architecture & Workflow
-
-1. **User Authentication:** Users log in or register via the React frontend. The FastAPI backend issues a JWT token.
-2. **Inquiry Submission:** Authenticated users submit real estate inquiries (e.g., "The roof is leaking at REF-1234!") via the chat interface.
-3. **CrewAI Processing:** * **Agent 1:** Classifies *Urgency* (High/Medium/Low) and *Intent* (Complaint, Viewing, Buying, etc.).
-   * **Agent 2:** Extracts *Property IDs* (REF-XXXX) and *Appointment Dates*.
-   * **Agent 3:** Drafts an empathetic, contextual response.
-4. **Data Persistence:** The inquiry, structured AI analysis, and generated draft are saved to the NeonDB database.
-5. **Admin Review:** Administrators can toggle to the Dashboard view to see all system-wide inquiries sorted by urgency, alongside the users' phone numbers.
-
-## 📁 Repository Structure
-
-```text
-Real-Estate-Triage-Agent/
-│
-├── backend/                  # FastAPI Backend Services
-│   ├── auth.py               # JWT authentication & bcrypt password verification
-│   ├── crew_pipeline.py      # CrewAI pipeline execution logic
-│   ├── database.py           # SQLAlchemy engine & NeonDB connection setup
-│   ├── main.py               # FastAPI app, routing, and API endpoints
-│   ├── models_db.py          # PostgreSQL DB Schemas (User, TriageRecord)
-│   └── triage_service.py     # Wrapper service for the AI pipeline
-│
-├── frontend/                 # React (Vite) Frontend UI
-│   ├── public/
-│   ├── src/
-│   │   ├── App.jsx           # Main application logic (Auth, Chat, Admin views)
-│   │   ├── bgimage.jpg       # Theme background assets
-│   │   ├── main.jsx          # React DOM entry point
-│   │   └── styles.css        # Global styles and Dark/Light mode variables
-│   ├── index.html
-│   ├── package.json          # Node dependencies
-│   └── vite.config.js
-│
-├── agents.py                 # CrewAI Agent definitions & personas
-├── models.py                 # Pydantic models for enforcing structured AI output
-├── tasks.py                  # CrewAI Task descriptions & prompt engineering
-├── requirements.txt          # Python backend dependencies
-└── .env                      # Environment variables (Git-ignored)
-```
+---
 
 ## 🚀 Getting Started
 
-### 1. Prerequisites
-* Python 3.10+
-* Node.js 18+
-* A valid Google Gemini API Key
-* A PostgreSQL Database URL (e.g., from NeonDB)
+### 1. What You'll Need
 
-### 2. Configure Environment Variables
-Create a `.env` file in the root directory and add the following:
+- Python 3.10 or newer
+- Node.js 18 or newer
+- A Google Gemini API key (get one for free at [Google AI Studio](https://makersuite.google.com/app/apikey))
+- A PostgreSQL database (we recommend [NeonDB](https://neon.tech) for a free, cloud-based option)
+
+### 2. Set Up Environment Variables
+
+Create a `.env` file in the project root folder and add your credentials:
 
 ```env
-GEMINI_API_KEY=your_actual_gemini_key_here
-DATABASE_URL=postgresql://user:password@ep-your-db.region.aws.neon.tech/dbname?sslmode=require
-SECRET_KEY=generate_a_random_secret_string_here
+GEMINI_API_KEY=your_gemini_api_key_here
+DATABASE_URL=postgresql://user:password@your-database-url/dbname?sslmode=require
+SECRET_KEY=create_a_random_secret_string_here
 ```
 
-### 3. Start the Backend API
-Open a terminal in the project root:
+> 💡 **Tip:** To create a secure secret key, you can run this Python command: `python -c "import secrets; print(secrets.token_urlsafe(32))"`
 
-```powershell
-# Install required Python packages
+### 3. Start the Backend Server
+
+Open a terminal in the project root folder:
+
+```bash
+# Install Python packages
 pip install -r requirements.txt
 
-# Start the FastAPI server (Database tables will auto-generate on startup)
+# Set up the database
+alembic upgrade head
+
+# Start the API server
 uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
 ```
-*The backend API will run at `http://localhost:8000`*
 
-### 4. Start the Frontend UI
-Open a second terminal window and navigate to the frontend directory:
+> Your API will be available at `http://localhost:8000`
 
-```powershell
+### 4. Start the Frontend Application
+
+Open a second terminal window:
+
+```bash
 cd frontend
 
-# Install Node modules
+# Install JavaScript packages
 npm install
 
-# Start the Vite development server
+# Start the development server
 npm run dev
 ```
-*The React UI will be accessible at `http://localhost:5173`*
 
-## 💡 Usage Notes
-
-* **Creating an Admin Account:** To test the Admin Dashboard, register a new user from the login screen and include the word `"admin"` anywhere in the phone number field (e.g., `admin123`). The system will automatically flag this account with administrator privileges.
-* **Testing Queries:** The UI includes built-in example queries ranging from standard viewing requests to high-urgency maintenance complaints to test the AI's classification accuracy.
+> Your web application will be available at `http://localhost:5173`
 
 ---
-**Author:** Harshit Bhardwaj
+
+## 💡 How to Use the Application
+
+### Creating an Admin Account
+
+To test the admin features, create a new account and include the word `"admin"` anywhere in the phone number field (for example: `admin123` or `987654admin3210`). This will automatically grant you admin privileges.
+
+### Making Database Changes
+
+If you need to add new fields to the database:
+
+1. Update the models in `models_db.py`
+2. Generate a migration: `alembic revision --autogenerate -m "describe your changes"`
+3. Apply it: `alembic upgrade head`
+
+---
+
+## 🛠️ Technology Stack (Simplified)
+
+### Frontend - What Users See and Interact With
+
+- **React:** The core library that builds the user interface. It updates only the parts of the screen that change, making the app feel fast and responsive.
+- **Vite:** The build tool that makes development quick. It instantly updates the browser when you make code changes and optimizes everything for production.
+- **CSS:** Handles all styling with built-in dark/light mode support. The interface adapts automatically to your system preferences.
+
+### Backend - The Engine Room
+
+- **Python:** The programming language used for all backend logic, chosen for its simplicity and powerful AI libraries.
+- **FastAPI:** The web framework that creates the API endpoints. It's fast, easy to use, and automatically generates documentation for all endpoints.
+- **Uvicorn:** The server that runs the Python application and handles incoming requests.
+
+### AI & Intelligence - The Brain
+
+- **CrewAI:** The framework that orchestrates multiple AI agents to work together as a coordinated team, each with a specific role.
+- **Google Gemini:** The AI model that actually reads and understands the customer messages. It's fast and great at following instructions.
+- **LangChain:** The toolkit that helps the AI agents process information and format their responses.
+
+### Database - Where Information Lives
+
+- **PostgreSQL:** The database that stores all user accounts and inquiry records.
+- **NeonDB:** The cloud service that hosts our database (free tier available).
+- **SQLAlchemy:** The tool that lets us work with the database using Python code instead of writing raw SQL.
+- **Alembic:** The version control system for our database structure—it safely applies updates without losing data.
+
+### Security - Keeping Things Safe
+
+- **JWT (JSON Web Tokens):** The secure "ticket" system that proves a user is logged in. Each request includes a token that verifies identity.
+- **bcrypt:** The password encryption system that ensures even if someone gets access to the database, they can't read users' passwords.
+- **CORS:** A security feature that ensures only our frontend application can communicate with our backend API.
+
+---
+
+Built with ❤️ by **Harshit Bhardwaj**
