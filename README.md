@@ -32,36 +32,40 @@ The application is organized into two main parts: a Python backend that handles 
 ```text
 real-estate-ai-triage/
 │
-├── backend/                       # 🐍 Python Backend & AI Logic
-│   ├── alembic/                   # Database migration files
-│   ├── auth.py                    # Login system with password encryption
-│   ├── crew_pipeline.py           # AI agent definitions and prompts
-│   ├── database.py                # Database connection setup
-│   ├── main.py                    # API endpoints and routing
-│   ├── models_db.py               # Database table structures
-│   └── triage_service.py          # Service that runs the AI pipeline
+├── backend/                       # 🐍 FastAPI Backend & AI Logic
+│   ├── alembic/                   # Database migration tracking folder
+│   ├── agents.py                  # CrewAI persona definitions (Triage, Data, CRM)
+│   ├── auth.py                    # JWT token generation & password encryption
+│   ├── crew_pipeline.py           # Core logic linking agents and tasks together
+│   ├── database.py                # SQLAlchemy engine & NeonDB connection setup
+│   ├── main.py                    # FastAPI server, API routing, and endpoints
+│   ├── models.py                  # Pydantic schemas enforcing AI JSON output
+│   ├── models_db.py               # PostgreSQL DB tables (User, TriageRecord)
+│   ├── tasks.py                   # CrewAI prompt engineering and assignments
+│   └── triage_service.py          # Wrapper service executing the CrewAI pipeline
 │
-├── frontend/                      # ⚛️ React Frontend UI
+├── frontend/                      # ⚛️ React (Vite) Frontend UI
 │   ├── public/
 │   ├── src/
-│   │   ├── components/            # Reusable UI pieces
-│   │   │   ├── Admin.jsx          # Admin dashboard
-│   │   │   ├── Chat.jsx           # User chat interface
-│   │   │   ├── Header.jsx         # Navigation bar
-│   │   │   └── Login.jsx          # Login and registration screen
+│   │   ├── components/            # Modular UI Components
+│   │   │   ├── Admin.jsx          # Admin dashboard for managing global inquiries
+│   │   │   ├── Chat.jsx           # User chat interface and personal request history
+│   │   │   ├── Header.jsx         # Dynamic top navigation bar
+│   │   │   └── Login.jsx          # Auth screen with split-pane welcome card
 │   │   │
-│   │   ├── App.jsx                # Main app controller
-│   │   ├── main.jsx               # App entry point
-│   │   ├── styles.css             # Global styling
-│   │   └── bgimage.jpg            # Background image
+│   │   ├── App.jsx                # Global state manager (Theme, Auth) and view router
+│   │   ├── main.jsx               # React DOM entry point
+│   │   ├── styles.css             # Global styling and Dark/Light theme variables
+│   │   └── bgimage.jpg            # Application background asset
 │   │
-│   ├── package.json               # Frontend dependencies
-│   └── vite.config.js             # Build tool configuration
+│   ├── package.json               # Node dependencies and scripts
+│   └── vite.config.js             # Vite build configuration
 │
-├── alembic.ini                    # Database migration settings
-├── requirements.txt               # Python dependencies
-├── .env                           # Environment variables (keep secret!)
-└── README.md                      # This documentation
+├── alembic.ini                    # Alembic migration settings
+├── requirements.txt               # Python backend dependencies
+├── test_ai.py                     # Command-line tester for rapid AI prompt testing
+├── .env                           # Environment variables (Git-ignored API keys)
+└── README.md                      # Project documentation
 ```
 
 ---
