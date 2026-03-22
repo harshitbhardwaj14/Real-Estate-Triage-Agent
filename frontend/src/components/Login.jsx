@@ -207,9 +207,9 @@ export default function Login({ setToken, setIsAdmin, setView, isDarkMode }) {
               </button>
             </div>
             
-            <p style={{ fontSize: '11px', opacity: 0.4, marginTop: '2rem', textAlign: 'center' }}>
+            {/*<p style={{ fontSize: '11px', opacity: 0.4, marginTop: '2rem', textAlign: 'center' }}>
                 Tip: Include "admin" in phone to bypass 10-digit rule.
-            </p>
+            </p>*/}
           </form>
         </div>
 
