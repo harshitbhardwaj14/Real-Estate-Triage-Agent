@@ -5,15 +5,15 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from sqlalchemy import case
 from typing import Literal
+from datetime import timedelta
 
-from backend.triage_service import execute_triage
 from backend.database import engine, Base, get_db
 from backend.models_db import User, TriageRecord
 from backend.auth import (
     get_password_hash, verify_password, create_access_token, 
     get_current_user, ACCESS_TOKEN_EXPIRE_MINUTES
 )
-from datetime import timedelta
+from backend.triage_service import execute_triage, is_real_estate_query
 
 app = FastAPI(title="Real Estate AI Triage API", version="1.3.0")
 
@@ -27,7 +27,7 @@ app.add_middleware(
 
 # --- Pydantic Schemas ---
 class UserCreate(BaseModel):
-    name: str # NEW: Required for registration
+    name: str 
     phone_number: str
     password: str
     is_admin: bool = False
@@ -42,7 +42,7 @@ class StatusUpdate(BaseModel):
 
 @app.post("/register")
 def register(user: UserCreate, db: Session = Depends(get_db)):
-    # NEW: Strict 10-digit validation with admin bypass
+    # Strict 10-digit validation with admin bypass
     if "admin" not in user.phone_number.lower():
         if not user.phone_number.isdigit() or len(user.phone_number) != 10:
             raise HTTPException(status_code=400, detail="Phone number must be exactly 10 digits")
@@ -52,7 +52,7 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Phone number already registered")
     
     hashed_pwd = get_password_hash(user.password)
-    # NEW: Save the user's name
+    # Save the user's name
     new_user = User(name=user.name, phone_number=user.phone_number, hashed_password=hashed_pwd, is_admin=user.is_admin)
     db.add(new_user)
     db.commit()
@@ -69,14 +69,28 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
         data={"sub": user.phone_number, "is_admin": user.is_admin},
         expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     )
-    return {"access_token": access_token, "token_type": "bearer", "is_admin": user.is_admin}
-
+    # Ensure the name is returned so the React Header can display it
+    return {
+        "access_token": access_token, 
+        "token_type": "bearer", 
+        "is_admin": user.is_admin,
+        "name": user.name 
+    }
 
 @app.post("/triage")
 def triage(payload: TriageRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict:
     try:
+        # 1. THE GATEKEEPER CHECK
+        if not is_real_estate_query(payload.message):
+            raise HTTPException(
+                status_code=400, 
+                detail="Off-topic detected: Please ensure your inquiry is related to real estate, property management, or maintenance."
+            )
+
+        # 2. Execute the heavy CrewAI pipeline (only runs if step 1 passes)
         result = execute_triage(payload.message)
         
+        # 3. Save to database (only runs if step 1 passes)
         new_record = TriageRecord(
             user_id=current_user.id,
             inquiry=payload.message,
@@ -91,6 +105,10 @@ def triage(payload: TriageRequest, current_user: User = Depends(get_current_user
         db.commit()
 
         return result
+        
+    except HTTPException:
+        # Re-raise the 400 error so FastAPI sends it to the frontend
+        raise 
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
@@ -106,14 +124,14 @@ def get_admin_records(current_user: User = Depends(get_current_user), db: Sessio
         else_=4
     )
     
-    # 1. Add User.name to the query selection
+    # Add User.name to the query selection
     results = db.query(TriageRecord, User.phone_number, User.name)\
         .join(User, TriageRecord.user_id == User.id)\
         .order_by(urgency_order, TriageRecord.created_at.desc())\
         .limit(15).all()
         
     formatted_records = []
-    # 2. Unpack the name from the query results
+    # Unpack the name from the query results
     for record, phone, name in results:
         formatted_records.append({
             "id": record.id,
@@ -140,8 +158,6 @@ def update_record_status(record_id: int, payload: StatusUpdate, current_user: Us
     record.status = payload.status
     db.commit()
     return {"message": "Status updated successfully", "status": record.status}
-
-# Add this endpoint in backend/main.py
 
 @app.get("/user/records")
 def get_user_records(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):

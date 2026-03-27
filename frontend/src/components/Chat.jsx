@@ -78,6 +78,13 @@ export default function Chat({ token, handleLogout }) {
         return;
       }
 
+      if (!response.ok) {
+        const errData = await response.json();
+        setChat((prev) => [...prev, { role: "ai-error", text: errData.detail || "An error occurred." }]);
+        setLoading(false);
+        return;
+      }
+
       const data = await response.json();
       setChat((prev) => [...prev, { role: "ai", triage: data }]);
     } catch (err) {
